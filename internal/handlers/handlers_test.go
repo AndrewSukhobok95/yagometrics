@@ -112,7 +112,7 @@ func TestMetricHandlerGetMetric(t *testing.T) {
 			want: want{
 				code:        200,
 				contentType: "text/plain",
-				metricValue: "111.200000",
+				metricValue: "111.2",
 			},
 		},
 		{

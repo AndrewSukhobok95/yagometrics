@@ -65,7 +65,7 @@ func (mh *MetricHandler) GetMetric(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, fmt.Sprintf("Metric %s doesn't exist.", metricName), http.StatusNotFound)
 			return
 		}
-		metricValueString = fmt.Sprintf("%f", metricValue)
+		metricValueString = strconv.FormatFloat(metricValue, 'f', -1, 64)
 	case metricType == "counter":
 		metricValue, err := mh.storage.GetCounterMetric(metricName)
 		if err != nil {
