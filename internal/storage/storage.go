@@ -11,6 +11,8 @@ type Storage interface {
 	AddCounterMetric(name string, value int64)
 	GetGaugeMetric(name string) (float64, error)
 	GetCounterMetric(name string) (int64, error)
+	GetGaugeMetricMap(targetMap map[string]float64)
+	GetCounterMetricMap(targetMap map[string]int64)
 	GetAllMetricNames() []string
 }
 
@@ -70,13 +72,31 @@ func (ms *MemStorage) GetCounterMetric(name string) (int64, error) {
 	}
 }
 
+func (ms *MemStorage) GetGaugeMetricMap(targetMap map[string]float64) {
+	ms.mutex.Lock()
+	for k, v := range ms.gauges {
+		targetMap[k] = v
+	}
+	ms.mutex.Unlock()
+}
+
+func (ms *MemStorage) GetCounterMetricMap(targetMap map[string]int64) {
+	ms.mutex.Lock()
+	for k, v := range ms.counters {
+		targetMap[k] = v
+	}
+	ms.mutex.Unlock()
+}
+
 func (ms *MemStorage) GetAllMetricNames() []string {
-	names := make([]string, len(ms.counters)+len(ms.gauges))
+	names := make([]string, 0)
+	ms.mutex.Lock()
 	for k := range ms.counters {
 		names = append(names, k)
 	}
 	for k := range ms.gauges {
 		names = append(names, k)
 	}
+	ms.mutex.Unlock()
 	return names
 }

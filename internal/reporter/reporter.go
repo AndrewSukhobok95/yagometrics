@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/AndrewSukhobok95/yagometrics.git/internal/metrics"
+	"github.com/AndrewSukhobok95/yagometrics.git/internal/storage"
 )
 
 func send(client *http.Client, endpoint string) {
@@ -23,15 +23,15 @@ func send(client *http.Client, endpoint string) {
 	defer response.Body.Close()
 }
 
-func Report(m *metrics.Metrics, endpoint string, reportInterval time.Duration) {
+func Report(storage storage.Storage, endpoint string, reportInterval time.Duration) {
 	ticker := time.NewTicker(reportInterval)
 	client := &http.Client{}
+	counters := make(map[string]int64)
+	gauges := make(map[string]float64)
 	for {
 		<-ticker.C
-		m.Mutex.Lock()
-		counters := m.Counters
-		gauges := m.Gauges
-		m.Mutex.Unlock()
+		storage.GetCounterMetricMap(counters)
+		storage.GetGaugeMetricMap(gauges)
 		for k, v := range counters {
 			send(client, fmt.Sprintf("http://%s/update/%s/%s/%d", endpoint, "counter", k, v))
 		}

@@ -4,9 +4,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/AndrewSukhobok95/yagometrics.git/internal/metrics"
 	"github.com/AndrewSukhobok95/yagometrics.git/internal/poller"
 	"github.com/AndrewSukhobok95/yagometrics.git/internal/reporter"
+	"github.com/AndrewSukhobok95/yagometrics.git/internal/storage"
 )
 
 const (
@@ -17,9 +17,9 @@ const (
 
 func main() {
 	var wg sync.WaitGroup
-	m := metrics.NewMetrics()
+	memStorage := storage.NewMemStorage()
 	wg.Add(2)
-	go poller.Poll(m, pollInterval)
-	go reporter.Report(m, endpoint, reportInterval)
+	go poller.Poll(memStorage, pollInterval)
+	go reporter.Report(memStorage, endpoint, reportInterval)
 	wg.Wait()
 }

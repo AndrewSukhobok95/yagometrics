@@ -83,12 +83,12 @@ func (mh *MetricHandler) GetMetric(w http.ResponseWriter, r *http.Request) {
 }
 
 var mainPage = `<html>
-    <head>
-    <title></title>
-    </head>
-    <body>
-    %s
-    </body>
+<head>
+<title></title>
+</head>
+<body>
+%s
+</body>
 </html>`
 
 func (mh *MetricHandler) GetMetricList(w http.ResponseWriter, r *http.Request) {
@@ -98,8 +98,8 @@ func (mh *MetricHandler) GetMetricList(w http.ResponseWriter, r *http.Request) {
 	}
 	metricsSlice := mh.storage.GetAllMetricNames()
 	var metricsNames string
-	if len(metricsSlice) == 0 {
-		metricsNames = strings.Join(metricsSlice, "\n")
+	if len(metricsSlice) != 0 {
+		metricsNames = strings.Join(metricsSlice, "; ")
 	} else {
 		metricsNames = "No stored metrics"
 	}
