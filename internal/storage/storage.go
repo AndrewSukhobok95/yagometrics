@@ -55,7 +55,7 @@ func (ms *MemStorage) GetGaugeMetric(name string) (float64, error) {
 	if ok {
 		return value, nil
 	} else {
-		e := fmt.Errorf("The given metric name %s doesn't exist", name)
+		e := fmt.Errorf("the given metric name %s doesn't exist", name)
 		return 0, e
 	}
 }
@@ -67,7 +67,7 @@ func (ms *MemStorage) GetCounterMetric(name string) (int64, error) {
 	if ok {
 		return value, nil
 	} else {
-		e := fmt.Errorf("The given metric name %s doesn't exist", name)
+		e := fmt.Errorf("the given metric name %s doesn't exist", name)
 		return 0, e
 	}
 }
