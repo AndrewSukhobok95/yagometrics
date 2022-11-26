@@ -16,20 +16,46 @@ func TestMetricHandler(t *testing.T) {
 		contentType string
 	}
 	tests := []struct {
-		name string
-		want want
+		name    string
+		address string
+		want    want
 	}{
 		{
-			name: "positive test #1",
+			name:    "Positive test: Gauge metric",
+			address: "/update/gauge/Name1/111",
 			want: want{
 				code:        200,
 				contentType: "text/plain",
 			},
 		},
+		{
+			name:    "Positive test: Counter metric",
+			address: "/update/counter/Name1/111",
+			want: want{
+				code:        200,
+				contentType: "text/plain",
+			},
+		},
+		{
+			name:    "Negative test: Unkonwn metric",
+			address: "/update/unknown/Name1/111",
+			want: want{
+				code:        501,
+				contentType: "text/plain; charset=utf-8",
+			},
+		},
+		{
+			name:    "Negative test: Empty value",
+			address: "/update/counter/Name1",
+			want: want{
+				code:        404,
+				contentType: "text/plain; charset=utf-8",
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			request := httptest.NewRequest(http.MethodPost, "/update/gauge/Name1/111", bytes.NewBufferString(""))
+			request := httptest.NewRequest(http.MethodPost, tt.address, bytes.NewBufferString(""))
 			w := httptest.NewRecorder()
 			memStorage := storage.NewMemStorage()
 			handler := handlers.NewMetricHandler(memStorage)
