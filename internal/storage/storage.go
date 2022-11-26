@@ -11,6 +11,7 @@ type Storage interface {
 	AddCounterMetric(name string, value int64)
 	GetGaugeMetric(name string) (float64, error)
 	GetCounterMetric(name string) (int64, error)
+	GetAllMetricNames() []string
 }
 
 type MemStorage struct {
@@ -67,4 +68,15 @@ func (ms *MemStorage) GetCounterMetric(name string) (int64, error) {
 		e := fmt.Errorf("The given metric name %s doesn't exist", name)
 		return 0, e
 	}
+}
+
+func (ms *MemStorage) GetAllMetricNames() []string {
+	names := make([]string, len(ms.counters)+len(ms.gauges))
+	for k := range ms.counters {
+		names = append(names, k)
+	}
+	for k := range ms.gauges {
+		names = append(names, k)
+	}
+	return names
 }

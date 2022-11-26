@@ -1,52 +1,35 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/AndrewSukhobok95/yagometrics.git/internal/handlers"
 	"github.com/AndrewSukhobok95/yagometrics.git/internal/storage"
+	"github.com/go-chi/chi/v5"
 )
 
 const (
 	endpoint = "127.0.0.1:8080"
 )
 
-func showMetrics(ms storage.Storage) {
-	for {
-		vg, err := ms.GetGaugeMetric("Alloc")
-		if err != nil {
-			fmt.Println("Alloc error")
-		} else {
-			fmt.Printf("Alloc %f \n", vg)
-		}
-		vc, err := ms.GetCounterMetric("PollCount")
-		if err != nil {
-			fmt.Println("PollCount error")
-		} else {
-			fmt.Printf("PollCount %d \n", vc)
-		}
-		time.Sleep(10 * time.Second)
-	}
-}
-
 func main() {
 	memStorage := storage.NewMemStorage()
 	handler := handlers.NewMetricHandler(memStorage)
-	mux := http.NewServeMux()
-	mux.Handle("/update/", handler)
 
-	go showMetrics(memStorage)
+	r := chi.NewRouter()
 
-	fmt.Println("Start server")
-	server := &http.Server{
-		Addr:    endpoint,
-		Handler: mux,
-	}
-	err := server.ListenAndServe()
-	if err != nil {
-		log.Fatal(err)
-	}
+	r.Route("/", func(r chi.Router) {
+		r.Get("/", func(rw http.ResponseWriter, r *http.Request) {
+			handler.GetMetricList(rw, r)
+		})
+		r.Post("/update/{metricType}/{metricName}/{metricValue}", func(rw http.ResponseWriter, r *http.Request) {
+			handler.UpdateMetric(rw, r)
+		})
+		r.Get("/value/{metricType}/{metricName}", func(rw http.ResponseWriter, r *http.Request) {
+			handler.GetMetric(rw, r)
+		})
+	})
+
+	log.Fatal(http.ListenAndServe(endpoint, r))
 }
