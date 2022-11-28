@@ -18,7 +18,7 @@ func TestPoll(t *testing.T) {
 		{
 			name:             "Positive test: Counter metric",
 			pollInterval:     10 * time.Millisecond,
-			waitInterval:     100 * time.Millisecond,
+			waitInterval:     105 * time.Millisecond,
 			wantCounterValue: 10,
 		},
 	}
