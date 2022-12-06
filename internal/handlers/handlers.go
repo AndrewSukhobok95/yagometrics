@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"html/template"
 	"net/http"
 	"strconv"
 	"strings"
@@ -82,14 +83,9 @@ func (mh *MetricHandler) GetMetric(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(metricValueString))
 }
 
-var mainPage = `<html>
-<head>
-<title></title>
-</head>
-<body>
-%s
-</body>
-</html>`
+type MainPageContent struct {
+	Metrics string
+}
 
 func (mh *MetricHandler) GetMetricList(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
@@ -101,10 +97,15 @@ func (mh *MetricHandler) GetMetricList(w http.ResponseWriter, r *http.Request) {
 	if len(metricsSlice) != 0 {
 		metricsNames = strings.Join(metricsSlice, "; ")
 	} else {
-		metricsNames = "No stored metrics"
+		metricsNames = ""
 	}
-	returnPage := fmt.Sprintf(mainPage, metricsNames)
-	w.Header().Set("Content-Type", "text/plain")
+	w.Header().Set("Content-Type", "text/html")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(returnPage))
+	// Reading html
+	content := MainPageContent{Metrics: metricsNames}
+	parsedTemplate, _ := template.ParseFiles("./web/main.html")
+	err := parsedTemplate.Execute(w, content)
+	if err != nil {
+		http.Error(w, "Page not found", http.StatusInternalServerError)
+	}
 }

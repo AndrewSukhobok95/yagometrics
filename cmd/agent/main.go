@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net/http"
 	"sync"
 	"time"
 
@@ -18,8 +19,9 @@ const (
 func main() {
 	var wg sync.WaitGroup
 	memStorage := storage.NewMemStorage()
+	client := &http.Client{}
 	wg.Add(2)
 	go poller.Poll(memStorage, pollInterval)
-	go reporter.Report(memStorage, endpoint, reportInterval)
+	go reporter.Report(client, memStorage, endpoint, reportInterval)
 	wg.Wait()
 }

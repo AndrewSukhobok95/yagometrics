@@ -23,15 +23,14 @@ func send(client *http.Client, endpoint string) {
 	defer response.Body.Close()
 }
 
-func Report(storage storage.Storage, endpoint string, reportInterval time.Duration) {
+func Report(client *http.Client, storage storage.Storage, endpoint string, reportInterval time.Duration) {
 	ticker := time.NewTicker(reportInterval)
-	client := &http.Client{}
 	counters := make(map[string]int64)
 	gauges := make(map[string]float64)
 	for {
 		<-ticker.C
-		storage.GetCounterMetricMap(counters)
-		storage.GetGaugeMetricMap(gauges)
+		storage.FillCounterMetricMap(counters)
+		storage.FillGaugeMetricMap(gauges)
 		for k, v := range counters {
 			send(client, fmt.Sprintf("http://%s/update/%s/%s/%d", endpoint, "counter", k, v))
 		}
