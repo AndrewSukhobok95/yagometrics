@@ -43,9 +43,13 @@ func (ms *MemStorage) InsertCounterMetric(name string, value int64) {
 }
 
 func (ms *MemStorage) AddCounterMetric(name string, value int64) {
-	ms.mutex.Lock()
-	ms.counters[name] += value
-	ms.mutex.Unlock()
+	if _, ok := ms.counters[name]; ok {
+		ms.mutex.Lock()
+		ms.counters[name] += value
+		ms.mutex.Unlock()
+	} else {
+		ms.InsertCounterMetric(name, value)
+	}
 }
 
 func (ms *MemStorage) GetGaugeMetric(name string) (float64, error) {

@@ -1,12 +1,14 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"net/http"
 	"strconv"
 	"strings"
 
+	"github.com/AndrewSukhobok95/yagometrics.git/internal/serialization"
 	"github.com/AndrewSukhobok95/yagometrics.git/internal/storage"
 	"github.com/go-chi/chi/v5"
 )
@@ -20,10 +22,6 @@ func NewMetricHandler(storage storage.Storage) MetricHandler {
 }
 
 func (mh *MetricHandler) UpdateMetric(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Only POST requests are allowed.", http.StatusMethodNotAllowed)
-		return
-	}
 	metricType := chi.URLParam(r, "metricType")
 	metricName := chi.URLParam(r, "metricName")
 	metricValueString := chi.URLParam(r, "metricValue")
@@ -51,11 +49,32 @@ func (mh *MetricHandler) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 	w.Write(nil)
 }
 
-func (mh *MetricHandler) GetMetric(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Only GET requests are allowed.", http.StatusMethodNotAllowed)
+func (mh *MetricHandler) UpdateMetricFromJSON(w http.ResponseWriter, r *http.Request) {
+	var metric serialization.Metrics
+	if err := json.NewDecoder(r.Body).Decode(&metric); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	switch {
+	case metric.MType == "gauge":
+		mh.storage.InsertGaugeMetric(metric.ID, *metric.Value)
+	case metric.MType == "counter":
+		mh.storage.AddCounterMetric(metric.ID, *metric.Delta)
+	default:
+		http.Error(w, fmt.Sprintf("%s metric type is not implemented.", metric.MType), http.StatusNotImplemented)
+		return
+	}
+	metricToReturn, err := serialization.GetFilledMetricFromStorage(metric.ID, metric.MType, mh.storage)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotImplemented)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(metricToReturn)
+}
+
+func (mh *MetricHandler) GetMetric(w http.ResponseWriter, r *http.Request) {
 	metricType := chi.URLParam(r, "metricType")
 	metricName := chi.URLParam(r, "metricName")
 	var metricValueString string
@@ -83,15 +102,30 @@ func (mh *MetricHandler) GetMetric(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(metricValueString))
 }
 
+func (mh *MetricHandler) GetMetricJSON(w http.ResponseWriter, r *http.Request) {
+	var metric serialization.Metrics
+	if err := json.NewDecoder(r.Body).Decode(&metric); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	metricToReturn, err := serialization.GetFilledMetricFromStorage(metric.ID, metric.MType, mh.storage)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotImplemented)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(metricToReturn); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+}
+
 type MainPageContent struct {
 	Metrics string
 }
 
 func (mh *MetricHandler) GetMetricList(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Only GET requests are allowed.", http.StatusMethodNotAllowed)
-		return
-	}
 	metricsSlice := mh.storage.GetAllMetricNames()
 	var metricsNames string
 	if len(metricsSlice) != 0 {

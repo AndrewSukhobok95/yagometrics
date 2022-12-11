@@ -29,6 +29,12 @@ func main() {
 		r.Get("/value/{metricType}/{metricName}", func(rw http.ResponseWriter, r *http.Request) {
 			handler.GetMetric(rw, r)
 		})
+		r.Post("/update", func(rw http.ResponseWriter, r *http.Request) {
+			handler.UpdateMetricFromJSON(rw, r)
+		})
+		r.Post("/value", func(rw http.ResponseWriter, r *http.Request) {
+			handler.GetMetricJSON(rw, r)
+		})
 	})
 
 	log.Fatal(http.ListenAndServe(endpoint, r))
