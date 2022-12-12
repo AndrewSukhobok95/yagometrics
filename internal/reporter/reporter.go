@@ -2,15 +2,17 @@ package reporter
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"time"
 
+	"github.com/AndrewSukhobok95/yagometrics.git/internal/serialization"
 	"github.com/AndrewSukhobok95/yagometrics.git/internal/storage"
 )
 
-func send(client *http.Client, endpoint string) {
+/*func send(client *http.Client, endpoint string) {
 	request, err := http.NewRequest(http.MethodPost, endpoint, bytes.NewBufferString(""))
 	if err != nil {
 		log.Fatal(err)
@@ -38,9 +40,9 @@ func Report(client *http.Client, storage storage.Storage, endpoint string, repor
 			send(client, fmt.Sprintf("http://%s/update/%s/%s/%f", endpoint, "gauge", k, v))
 		}
 	}
-}
+}*/
 
-/*func sendByJSON(client *http.Client, address string, metric serialization.Metrics) {
+func sendByJSON(client *http.Client, address string, metric serialization.Metrics) {
 	metricMarshal, _ := json.Marshal(metric)
 	request, err := http.NewRequest(http.MethodPost, address, bytes.NewBuffer(metricMarshal))
 	if err != nil {
@@ -76,4 +78,4 @@ func Report(client *http.Client, storage storage.Storage, endpoint string, repor
 			sendByJSON(client, address, metricToReturn)
 		}
 	}
-}*/
+}
