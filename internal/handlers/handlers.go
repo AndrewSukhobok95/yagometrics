@@ -69,6 +69,7 @@ func (mh *MetricHandler) UpdateMetricFromJSON(w http.ResponseWriter, r *http.Req
 		http.Error(w, err.Error(), http.StatusNotImplemented)
 		return
 	}
+	fmt.Println(mh.storage.GetGaugeMetric("Sys"))
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(metricToReturn)
