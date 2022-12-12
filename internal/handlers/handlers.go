@@ -110,7 +110,7 @@ func (mh *MetricHandler) GetMetricJSON(w http.ResponseWriter, r *http.Request) {
 	}
 	metricToReturn, err := serialization.GetFilledMetricFromStorage(metric.ID, metric.MType, mh.storage)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotImplemented)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
