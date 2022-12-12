@@ -105,18 +105,18 @@ func (mh *MetricHandler) GetMetric(w http.ResponseWriter, r *http.Request) {
 func (mh *MetricHandler) GetMetricJSON(w http.ResponseWriter, r *http.Request) {
 	var metric serialization.Metrics
 	if err := json.NewDecoder(r.Body).Decode(&metric); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
 	metricToReturn, err := serialization.GetFilledMetricFromStorage(metric.ID, metric.MType, mh.storage)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(metricToReturn); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
 }
