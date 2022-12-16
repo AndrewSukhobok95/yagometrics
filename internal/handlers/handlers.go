@@ -115,6 +115,7 @@ func (mh *MetricHandler) GetMetricJSON(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
+	fmt.Printf("=========== before: %s %s %d %d \n", metricToReturn.MType, metricToReturn.ID, metricToReturn.Value, metricToReturn.Delta)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(metricToReturn); err != nil {
