@@ -83,7 +83,7 @@ func (mh *MetricHandler) UpdateMetricFromJSON(w http.ResponseWriter, r *http.Req
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	fmt.Printf("=========== before: %s %d \n", metric.ID, metric.Value)
+	fmt.Printf("=========== before: %s %s %d %d \n", metric.MType, metric.ID, metric.Value, metric.Delta)
 	switch {
 	case metric.MType == "gauge":
 		mh.storage.InsertGaugeMetric(metric.ID, *metric.Value)
@@ -98,7 +98,7 @@ func (mh *MetricHandler) UpdateMetricFromJSON(w http.ResponseWriter, r *http.Req
 		http.Error(w, err.Error(), http.StatusNotImplemented)
 		return
 	}
-	fmt.Printf("=========== after:  %s %d \n", metricToReturn.ID, metricToReturn.Value)
+	fmt.Printf("=========== after:  %s %s %d %d \n", metricToReturn.MType, metricToReturn.ID, metricToReturn.Value, metricToReturn.Delta)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(metricToReturn)
