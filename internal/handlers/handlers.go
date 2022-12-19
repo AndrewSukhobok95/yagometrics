@@ -83,7 +83,7 @@ func (mh *MetricHandler) UpdateMetricFromJSON(w http.ResponseWriter, r *http.Req
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	fmt.Printf("=========== before: %s %s %f %d \n", metric.MType, metric.ID, *metric.Value, *metric.Delta)
+	//fmt.Printf("=========== before: %s %s %v %v \n", metric.MType, metric.ID, *metric.Value, *metric.Delta)
 	switch {
 	case metric.MType == "gauge":
 		mh.storage.InsertGaugeMetric(metric.ID, *metric.Value)
@@ -98,7 +98,7 @@ func (mh *MetricHandler) UpdateMetricFromJSON(w http.ResponseWriter, r *http.Req
 		http.Error(w, err.Error(), http.StatusNotImplemented)
 		return
 	}
-	fmt.Printf("=========== after:  %s %s %f %d \n", metricToReturn.MType, metricToReturn.ID, *metricToReturn.Value, *metricToReturn.Delta)
+	//fmt.Printf("=========== after:  %s %s %v %v \n", metricToReturn.MType, metricToReturn.ID, *metricToReturn.Value, *metricToReturn.Delta)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(metricToReturn)
@@ -115,7 +115,7 @@ func (mh *MetricHandler) GetMetricJSON(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
-	fmt.Printf("=========== before: %s %s %f %d \n", metricToReturn.MType, metricToReturn.ID, *metricToReturn.Value, *metricToReturn.Delta)
+	//fmt.Printf("=========== before: %s %s %f %d \n", metricToReturn.MType, metricToReturn.ID, *metricToReturn.Value, *metricToReturn.Delta)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(metricToReturn); err != nil {
