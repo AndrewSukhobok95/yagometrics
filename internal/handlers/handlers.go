@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -79,11 +80,20 @@ func (mh *MetricHandler) GetMetric(w http.ResponseWriter, r *http.Request) {
 
 func (mh *MetricHandler) UpdateMetricFromJSON(w http.ResponseWriter, r *http.Request) {
 	var metric serialization.Metrics
-	if err := json.NewDecoder(r.Body).Decode(&metric); err != nil {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	//fmt.Printf("=========== before: %s %s %v %v \n", metric.MType, metric.ID, *metric.Value, *metric.Delta)
+	err = json.Unmarshal(body, &metric)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	/*if err := json.NewDecoder(r.Body).Decode(&metric); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}*/
 	switch {
 	case metric.MType == "gauge":
 		mh.storage.InsertGaugeMetric(metric.ID, *metric.Value)
@@ -98,30 +108,42 @@ func (mh *MetricHandler) UpdateMetricFromJSON(w http.ResponseWriter, r *http.Req
 		http.Error(w, err.Error(), http.StatusNotImplemented)
 		return
 	}
-	//fmt.Printf("=========== after:  %s %s %v %v \n", metricToReturn.MType, metricToReturn.ID, *metricToReturn.Value, *metricToReturn.Delta)
+	metricToReturnMarshaled, _ := json.Marshal(metricToReturn)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(metricToReturn)
+	w.Write(metricToReturnMarshaled)
+	//json.NewEncoder(w).Encode(metricToReturn)
 }
 
 func (mh *MetricHandler) GetMetricJSON(w http.ResponseWriter, r *http.Request) {
 	var metric serialization.Metrics
-	if err := json.NewDecoder(r.Body).Decode(&metric); err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	err = json.Unmarshal(body, &metric)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	/*if err := json.NewDecoder(r.Body).Decode(&metric); err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}*/
 	metricToReturn, err := serialization.GetFilledMetricFromStorage(metric.ID, metric.MType, mh.storage)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
-	//fmt.Printf("=========== before: %s %s %f %d \n", metricToReturn.MType, metricToReturn.ID, *metricToReturn.Value, *metricToReturn.Delta)
+	metricToReturnMarshaled, _ := json.Marshal(metricToReturn)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(metricToReturn); err != nil {
+	w.Write(metricToReturnMarshaled)
+	/*if err := json.NewEncoder(w).Encode(metricToReturn); err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
-	}
+	}*/
 }
 
 type MainPageContent struct {
