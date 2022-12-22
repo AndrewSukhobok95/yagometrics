@@ -138,11 +138,12 @@ func (mh *MetricHandler) GetMetricJSON(w http.ResponseWriter, r *http.Request) {
 		return
 	}*/
 	metricToReturn, err := serialization.GetFilledMetricFromStorage(metric.ID, metric.MType, mh.storage)
+	log.Printf("Returned metric: " + metricToReturn.ToString() + "\n")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
-	log.Printf("Returned metric: " + metricToReturn.ToString() + "\n")
+	log.Printf("Marshling metric to return\n")
 	metricToReturnMarshaled, _ := json.Marshal(metricToReturn)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
