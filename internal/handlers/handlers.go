@@ -84,12 +84,18 @@ func (mh *MetricHandler) UpdateMetricFromJSON(w http.ResponseWriter, r *http.Req
 	var metric serialization.Metrics
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		log.Printf(err.Error() + "\n\n")
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintln(w, err.Error())
 		return
 	}
 	err = json.Unmarshal(body, &metric)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		log.Printf(err.Error() + "\n\n")
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintln(w, err.Error())
 		return
 	}
 	log.Printf("Received metric: " + metric.ToString() + "\n")
@@ -108,7 +114,10 @@ func (mh *MetricHandler) UpdateMetricFromJSON(w http.ResponseWriter, r *http.Req
 	}
 	metricToReturn, err := serialization.GetFilledMetricFromStorage(metric.ID, metric.MType, mh.storage)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotImplemented)
+		log.Printf(err.Error() + "\n\n")
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotImplemented)
+		fmt.Fprintln(w, err.Error())
 		return
 	}
 	log.Printf("Returned metric: " + metricToReturn.ToString() + "\n")
@@ -125,12 +134,18 @@ func (mh *MetricHandler) GetMetricJSON(w http.ResponseWriter, r *http.Request) {
 	var metric serialization.Metrics
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		log.Printf(err.Error() + "\n\n")
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintln(w, err.Error())
 		return
 	}
 	err = json.Unmarshal(body, &metric)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		log.Printf(err.Error() + "\n\n")
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintln(w, err.Error())
 		return
 	}
 	log.Printf("Received metric: " + metric.ToString() + "\n")
@@ -142,7 +157,9 @@ func (mh *MetricHandler) GetMetricJSON(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Returned metric: " + metricToReturn.ToString() + "\n")
 	if err != nil {
 		log.Printf(err.Error() + "\n\n")
-		http.Error(w, err.Error(), http.StatusNotFound)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintln(w, err.Error())
 		return
 	}
 	log.Printf("Marshling metric to return\n")
