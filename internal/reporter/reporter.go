@@ -46,12 +46,14 @@ func sendByJSON(client *http.Client, address string, metric serialization.Metric
 	metricMarshal, _ := json.Marshal(metric)
 	request, err := http.NewRequest(http.MethodPost, address, bytes.NewBuffer(metricMarshal))
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("Error in creating the request:\n")
+		log.Printf(err.Error() + "\n\n")
 	}
 	request.Header.Add("Content-Type", "application/json")
 	response, err := client.Do(request)
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("Error in receiving the response:\n")
+		log.Printf(err.Error() + "\n\n")
 	}
 	defer response.Body.Close()
 }
@@ -65,17 +67,21 @@ func Report(client *http.Client, storage storage.Storage, endpoint string, repor
 		for _, name := range counterNames {
 			metricToReturn, err := serialization.GetFilledMetricFromStorage(name, "counter", storage)
 			if err != nil {
-				log.Fatal(err)
+				log.Printf("Error in extracting the metric from storage:\n")
+				log.Printf(err.Error() + "\n\n")
+			} else {
+				sendByJSON(client, address, metricToReturn)
 			}
-			sendByJSON(client, address, metricToReturn)
 		}
 		gaugeNames := storage.GetGaugeMetricNames()
 		for _, name := range gaugeNames {
 			metricToReturn, err := serialization.GetFilledMetricFromStorage(name, "gauge", storage)
 			if err != nil {
-				log.Fatal(err)
+				log.Printf("Error in extracting the metric from storage:\n")
+				log.Printf(err.Error() + "\n\n")
+			} else {
+				sendByJSON(client, address, metricToReturn)
 			}
-			sendByJSON(client, address, metricToReturn)
 		}
 	}
 }

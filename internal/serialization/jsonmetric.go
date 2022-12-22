@@ -41,14 +41,10 @@ func GetFilledMetricFromStorage(mName, mType string, storage storage.Storage) (M
 	log.Printf("Extracting data from storage\n")
 	switch {
 	case mType == "gauge":
-		log.Printf("Extracting Gauge metric\n")
 		value, err = storage.GetGaugeMetric(mName)
-		log.Printf("Gauge metric extracted\n")
 		metric.Value = &value
 	case mType == "counter":
-		log.Printf("Extracting Counter metric\n")
 		delta, err = storage.GetCounterMetric(mName)
-		log.Printf("Counter metric extracted\n")
 		metric.Delta = &delta
 	default:
 		err = fmt.Errorf("the given metric type %s doesn't exist", mType)
