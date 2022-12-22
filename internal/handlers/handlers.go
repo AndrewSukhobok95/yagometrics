@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -90,6 +91,7 @@ func (mh *MetricHandler) UpdateMetricFromJSON(w http.ResponseWriter, r *http.Req
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	log.Printf("Received metric: " + metric.ToString() + "\n")
 	/*if err := json.NewDecoder(r.Body).Decode(&metric); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -108,6 +110,7 @@ func (mh *MetricHandler) UpdateMetricFromJSON(w http.ResponseWriter, r *http.Req
 		http.Error(w, err.Error(), http.StatusNotImplemented)
 		return
 	}
+	log.Printf("Returned metric: " + metricToReturn.ToString() + "\n")
 	metricToReturnMarshaled, _ := json.Marshal(metricToReturn)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -127,6 +130,7 @@ func (mh *MetricHandler) GetMetricJSON(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	log.Printf("Received metric: " + metric.ToString() + "\n")
 	/*if err := json.NewDecoder(r.Body).Decode(&metric); err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
@@ -136,6 +140,7 @@ func (mh *MetricHandler) GetMetricJSON(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
+	log.Printf("Returned metric: " + metricToReturn.ToString() + "\n")
 	metricToReturnMarshaled, _ := json.Marshal(metricToReturn)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

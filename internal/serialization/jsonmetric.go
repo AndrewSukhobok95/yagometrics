@@ -13,6 +13,19 @@ type Metrics struct {
 	Value *float64 `json:"value,omitempty"` // значение метрики в случае передачи gauge
 }
 
+func (m *Metrics) ToString() string {
+	metric := ""
+	metric += "Type: " + m.MType
+	metric += "Name: " + m.ID
+	switch m.MType {
+	case "gauge":
+		metric += "Value: " + fmt.Sprintf("%f", *m.Value)
+	case "counter":
+		metric += "Delta: " + fmt.Sprintf("%d", *m.Delta)
+	}
+	return metric
+}
+
 func GetFilledMetricFromStorage(mName, mType string, storage storage.Storage) (Metrics, error) {
 	var metric Metrics
 	var value float64
