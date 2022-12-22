@@ -139,8 +139,8 @@ func (mh *MetricHandler) GetMetricJSON(w http.ResponseWriter, r *http.Request) {
 	}*/
 	metricToReturn, err := serialization.GetFilledMetricFromStorage(metric.ID, metric.MType, mh.storage)
 	log.Printf("Returned metric: " + metricToReturn.ToString() + "\n")
-	log.Printf(err.Error() + "\n\n\n")
 	if err != nil {
+		log.Printf(err.Error() + "\n")
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
