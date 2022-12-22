@@ -80,6 +80,7 @@ func (mh *MetricHandler) GetMetric(w http.ResponseWriter, r *http.Request) {
 }
 
 func (mh *MetricHandler) UpdateMetricFromJSON(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	log.Printf("Attempt to update metric by json\n")
 	var metric serialization.Metrics
 	body, err := io.ReadAll(r.Body)
@@ -113,13 +114,13 @@ func (mh *MetricHandler) UpdateMetricFromJSON(w http.ResponseWriter, r *http.Req
 	}
 	log.Printf("Returned metric: " + metricToReturn.ToString() + "\n")
 	metricToReturnMarshaled, _ := json.Marshal(metricToReturn)
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(metricToReturnMarshaled)
 	//json.NewEncoder(w).Encode(metricToReturn)
 }
 
 func (mh *MetricHandler) GetMetricJSON(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	log.Printf("Attempt to get metric by json\n")
 	var metric serialization.Metrics
 	body, err := io.ReadAll(r.Body)
@@ -140,13 +141,12 @@ func (mh *MetricHandler) GetMetricJSON(w http.ResponseWriter, r *http.Request) {
 	metricToReturn, err := serialization.GetFilledMetricFromStorage(metric.ID, metric.MType, mh.storage)
 	log.Printf("Returned metric: " + metricToReturn.ToString() + "\n")
 	if err != nil {
-		log.Printf(err.Error() + "\n")
+		log.Printf(err.Error() + "\n\n")
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
 	log.Printf("Marshling metric to return\n")
 	metricToReturnMarshaled, _ := json.Marshal(metricToReturn)
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(metricToReturnMarshaled)
 	/*if err := json.NewEncoder(w).Encode(metricToReturn); err != nil {
