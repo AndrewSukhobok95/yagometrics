@@ -136,7 +136,7 @@ func (mh *MetricHandler) GetMetricJSON(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf(err.Error() + "\n\n")
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusNotFound)
 		fmt.Fprintln(w, err.Error())
 		return
 	}
@@ -144,7 +144,7 @@ func (mh *MetricHandler) GetMetricJSON(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf(err.Error() + "\n\n")
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusNotFound)
 		fmt.Fprintln(w, err.Error())
 		return
 	}
@@ -158,7 +158,7 @@ func (mh *MetricHandler) GetMetricJSON(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf(err.Error() + "\n\n")
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusNotFound)
 		fmt.Fprintln(w, err.Error())
 		return
 	}
