@@ -15,13 +15,17 @@ type Metrics struct {
 
 func (m *Metrics) ToString() string {
 	metric := ""
-	metric += "Type: " + m.MType
-	metric += "Name: " + m.ID
-	switch m.MType {
-	case "gauge":
+	metric += "Type: " + m.MType + " "
+	metric += "Name: " + m.ID + " "
+	switch {
+	case m.Value == nil && m.Delta == nil:
+		metric += "Value: nil Delta: nil"
+	case m.MType == "gauge":
 		metric += "Value: " + fmt.Sprintf("%f", *m.Value)
-	case "counter":
+	case m.MType == "counter":
 		metric += "Delta: " + fmt.Sprintf("%d", *m.Delta)
+	default:
+		metric += "Unknown Type"
 	}
 	return metric
 }

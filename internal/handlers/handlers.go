@@ -80,6 +80,7 @@ func (mh *MetricHandler) GetMetric(w http.ResponseWriter, r *http.Request) {
 }
 
 func (mh *MetricHandler) UpdateMetricFromJSON(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Attempt to update metric by json\n")
 	var metric serialization.Metrics
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -119,6 +120,7 @@ func (mh *MetricHandler) UpdateMetricFromJSON(w http.ResponseWriter, r *http.Req
 }
 
 func (mh *MetricHandler) GetMetricJSON(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Attempt to get metric by json\n")
 	var metric serialization.Metrics
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
