@@ -2,7 +2,6 @@ package serialization
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/AndrewSukhobok95/yagometrics.git/internal/storage"
 )
@@ -38,7 +37,6 @@ func GetFilledMetricFromStorage(mName, mType string, storage storage.Storage) (M
 	var err error
 	metric.ID = mName
 	metric.MType = mType
-	log.Printf("Extracting data from storage\n")
 	switch {
 	case mType == "gauge":
 		value, err = storage.GetGaugeMetric(mName)

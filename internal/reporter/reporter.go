@@ -54,8 +54,9 @@ func sendByJSON(client *http.Client, address string, metric serialization.Metric
 	if err != nil {
 		log.Printf("Error in receiving the response:\n")
 		log.Printf(err.Error() + "\n\n")
+	} else {
+		defer response.Body.Close()
 	}
-	defer response.Body.Close()
 }
 
 func Report(client *http.Client, storage storage.Storage, endpoint string, reportInterval time.Duration) {
