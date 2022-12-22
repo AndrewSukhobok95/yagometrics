@@ -21,14 +21,14 @@ type Storage interface {
 type MemStorage struct {
 	counters map[string]int64
 	gauges   map[string]float64
-	mutex    sync.Mutex
+	mutex    *sync.Mutex
 }
 
 func NewMemStorage() *MemStorage {
 	var ms MemStorage
 	ms.counters = make(map[string]int64)
 	ms.gauges = make(map[string]float64)
-	ms.mutex = sync.Mutex{}
+	ms.mutex = &sync.Mutex{}
 	return &ms
 }
 
