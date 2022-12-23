@@ -19,6 +19,11 @@ func main() {
 
 	r := chi.NewRouter()
 
+	//r.Use(middleware.RequestID)
+	//r.Use(middleware.RealIP)
+	//r.Use(middleware.Logger)
+	//r.Use(middleware.Recoverer)
+
 	r.Route("/", func(r chi.Router) {
 		r.Get("/", func(rw http.ResponseWriter, r *http.Request) {
 			handler.GetMetricList(rw, r)
@@ -28,6 +33,12 @@ func main() {
 		})
 		r.Get("/value/{metricType}/{metricName}", func(rw http.ResponseWriter, r *http.Request) {
 			handler.GetMetric(rw, r)
+		})
+		r.Post("/update/", func(rw http.ResponseWriter, r *http.Request) {
+			handler.UpdateMetricFromJSON(rw, r)
+		})
+		r.Post("/value/", func(rw http.ResponseWriter, r *http.Request) {
+			handler.GetMetricJSON(rw, r)
 		})
 	})
 
