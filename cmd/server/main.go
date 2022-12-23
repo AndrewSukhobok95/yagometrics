@@ -3,15 +3,17 @@ package main
 import (
 	"log"
 	"net/http"
+	"sync"
 
 	"github.com/AndrewSukhobok95/yagometrics.git/internal/configuration"
+	"github.com/AndrewSukhobok95/yagometrics.git/internal/datastorage"
 	"github.com/AndrewSukhobok95/yagometrics.git/internal/handlers"
-	"github.com/AndrewSukhobok95/yagometrics.git/internal/storage"
 	"github.com/go-chi/chi/v5"
 )
 
 func main() {
-	memStorage := storage.NewMemStorage()
+	var wg sync.WaitGroup
+	memStorage := datastorage.NewMemStorage()
 	handler := handlers.NewMetricHandler(memStorage)
 
 	r := chi.NewRouter()
@@ -39,7 +41,8 @@ func main() {
 		})
 	})
 
-	config := configuration.GetConfig()
-
+	config := configuration.GetServerConfig()
+	datastorage.BackUpToFile(memStorage, config.StoreFile, config.StoreInterval, config.Restore, &wg)
 	log.Fatal(http.ListenAndServe(config.Address, r))
+	wg.Wait()
 }

@@ -10,16 +10,16 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/AndrewSukhobok95/yagometrics.git/internal/datastorage"
 	"github.com/AndrewSukhobok95/yagometrics.git/internal/serialization"
-	"github.com/AndrewSukhobok95/yagometrics.git/internal/storage"
 	"github.com/go-chi/chi/v5"
 )
 
 type MetricHandler struct {
-	storage storage.Storage
+	storage datastorage.Storage
 }
 
-func NewMetricHandler(storage storage.Storage) MetricHandler {
+func NewMetricHandler(storage datastorage.Storage) MetricHandler {
 	return MetricHandler{storage: storage}
 }
 
@@ -112,7 +112,7 @@ func (mh *MetricHandler) UpdateMetricFromJSON(w http.ResponseWriter, r *http.Req
 		http.Error(w, fmt.Sprintf("%s metric type is not implemented.", metric.MType), http.StatusNotImplemented)
 		return
 	}
-	metricToReturn, err := serialization.GetFilledMetricFromStorage(metric.ID, metric.MType, mh.storage)
+	metricToReturn, err := datastorage.GetFilledMetricFromStorage(metric.ID, metric.MType, mh.storage)
 	if err != nil {
 		log.Printf(err.Error() + "\n\n")
 		w.Header().Set("Content-Type", "application/json")
@@ -153,7 +153,7 @@ func (mh *MetricHandler) GetMetricJSON(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}*/
-	metricToReturn, err := serialization.GetFilledMetricFromStorage(metric.ID, metric.MType, mh.storage)
+	metricToReturn, err := datastorage.GetFilledMetricFromStorage(metric.ID, metric.MType, mh.storage)
 	log.Printf("Returned metric: " + metricToReturn.ToString() + "\n")
 	if err != nil {
 		log.Printf(err.Error() + "\n\n")

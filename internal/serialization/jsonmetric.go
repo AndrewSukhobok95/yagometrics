@@ -1,9 +1,8 @@
 package serialization
 
 import (
+	"encoding/json"
 	"fmt"
-
-	"github.com/AndrewSukhobok95/yagometrics.git/internal/storage"
 )
 
 type Metrics struct {
@@ -30,22 +29,16 @@ func (m *Metrics) ToString() string {
 	return metric
 }
 
-func GetFilledMetricFromStorage(mName, mType string, storage storage.Storage) (Metrics, error) {
-	var metric Metrics
-	var value float64
-	var delta int64
-	var err error
-	metric.ID = mName
-	metric.MType = mType
-	switch {
-	case mType == "gauge":
-		value, err = storage.GetGaugeMetric(mName)
-		metric.Value = &value
-	case mType == "counter":
-		delta, err = storage.GetCounterMetric(mName)
-		metric.Delta = &delta
-	default:
-		err = fmt.Errorf("the given metric type %s doesn't exist", mType)
+func (m *Metrics) ToJSONString() string {
+	metric := make(map[string]interface{})
+	metric["id"] = m.ID
+	metric["type"] = m.MType
+	switch m.MType {
+	case "gauge":
+		metric["value"] = *m.Value
+	case "counter":
+		metric["delta"] = *m.Delta
 	}
-	return metric, err
+	metricMarshal, _ := json.Marshal(metric)
+	return string(metricMarshal)
 }

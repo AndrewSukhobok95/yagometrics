@@ -5,17 +5,17 @@ import (
 	"sync"
 
 	"github.com/AndrewSukhobok95/yagometrics.git/internal/configuration"
+	"github.com/AndrewSukhobok95/yagometrics.git/internal/datastorage"
 	"github.com/AndrewSukhobok95/yagometrics.git/internal/poller"
 	"github.com/AndrewSukhobok95/yagometrics.git/internal/reporter"
-	"github.com/AndrewSukhobok95/yagometrics.git/internal/storage"
 )
 
 func main() {
 	var wg sync.WaitGroup
-	memStorage := storage.NewMemStorage()
+	memStorage := datastorage.NewMemStorage()
 	client := &http.Client{}
 
-	config := configuration.GetConfig()
+	config := configuration.GetAgentConfig()
 
 	wg.Add(2)
 	go poller.Poll(memStorage, config.PollInterval)

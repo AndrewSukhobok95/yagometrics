@@ -1,6 +1,7 @@
-package storage
+package datastorage
 
 import (
+	"encoding/json"
 	"fmt"
 	"sync"
 )
@@ -16,6 +17,7 @@ type Storage interface {
 	GetAllMetricNames() []string
 	GetCounterMetricNames() []string
 	GetGaugeMetricNames() []string
+	ExportToJSONString() string
 }
 
 type MemStorage struct {
@@ -123,4 +125,40 @@ func (ms *MemStorage) GetGaugeMetricNames() []string {
 	}
 	ms.mutex.Unlock()
 	return names
+}
+
+func (ms *MemStorage) ExportToJSONString() string {
+	out := "[\n"
+	ms.mutex.Lock()
+	for k, v := range ms.counters {
+		metric := CreateMetricJSONString(k, "counter", &v)
+		out += metric + ",\n"
+	}
+	i := 1
+	for k, v := range ms.gauges {
+		metric := CreateMetricJSONString(k, "gauge", &v)
+		if i == len(ms.gauges) {
+			out += metric + "\n"
+		} else {
+			out += metric + ",\n"
+		}
+		i++
+	}
+	ms.mutex.Unlock()
+	out += "]"
+	return out
+}
+
+func CreateMetricJSONString(mName, mType string, value interface{}) string {
+	metric := make(map[string]interface{})
+	metric["id"] = mName
+	metric["type"] = mType
+	switch mType {
+	case "gauge":
+		metric["value"] = value
+	case "counter":
+		metric["delta"] = value
+	}
+	metricMarshal, _ := json.Marshal(metric)
+	return string(metricMarshal)
 }
