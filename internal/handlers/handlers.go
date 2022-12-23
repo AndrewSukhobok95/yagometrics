@@ -134,6 +134,7 @@ func (mh *MetricHandler) GetMetricJSON(w http.ResponseWriter, r *http.Request) {
 	var metric serialization.Metrics
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
+		log.Println("Error while reading the body of the request:")
 		log.Printf(err.Error() + "\n\n")
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
@@ -142,6 +143,7 @@ func (mh *MetricHandler) GetMetricJSON(w http.ResponseWriter, r *http.Request) {
 	}
 	err = json.Unmarshal(body, &metric)
 	if err != nil {
+		log.Println("Error while unmarshaling the body of the request:")
 		log.Printf(err.Error() + "\n\n")
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
