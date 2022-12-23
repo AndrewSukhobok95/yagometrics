@@ -4,13 +4,10 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/AndrewSukhobok95/yagometrics.git/internal/configuration"
 	"github.com/AndrewSukhobok95/yagometrics.git/internal/handlers"
 	"github.com/AndrewSukhobok95/yagometrics.git/internal/storage"
 	"github.com/go-chi/chi/v5"
-)
-
-const (
-	endpoint = "127.0.0.1:8080"
 )
 
 func main() {
@@ -42,5 +39,7 @@ func main() {
 		})
 	})
 
-	log.Fatal(http.ListenAndServe(endpoint, r))
+	config := configuration.GetConfig()
+
+	log.Fatal(http.ListenAndServe(config.Address, r))
 }
