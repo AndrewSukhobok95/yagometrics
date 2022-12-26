@@ -15,7 +15,7 @@ func BackUpToFile(storage Storage, filePath string, storeInterval time.Duration,
 
 	if restore {
 		log.Println("Filling storage from back up file")
-		FillStorageFromBackUpFile(storage, filePath)
+		//FillStorageFromBackUpFile(storage, filePath)
 	}
 
 	file, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
@@ -49,6 +49,10 @@ func UpdateBackUpFile(storage Storage, file *os.File, storeInterval time.Duratio
 
 func FillStorageFromBackUpFile(storage Storage, filePath string) {
 	data, err := os.ReadFile(filePath)
+	//var data []byte
+	//file, err := os.OpenFile(filePath, os.O_RDONLY, 0755)
+	//file.Read(data)
+	//file.Close()
 	if err != nil {
 		log.Println("Error while trying to intialise the storage:")
 		log.Printf(err.Error() + "\n\n")
