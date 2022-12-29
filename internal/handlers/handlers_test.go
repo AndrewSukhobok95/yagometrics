@@ -8,8 +8,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/AndrewSukhobok95/yagometrics.git/internal/datastorage"
 	"github.com/AndrewSukhobok95/yagometrics.git/internal/handlers"
-	"github.com/AndrewSukhobok95/yagometrics.git/internal/storage"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -75,7 +75,7 @@ func TestMetricHandlerUpdateMetric(t *testing.T) {
 			rctx.URLParams.Add("metricValue", tt.metricValue)
 			request = request.WithContext(context.WithValue(request.Context(), chi.RouteCtxKey, rctx))
 			w := httptest.NewRecorder()
-			memStorage := storage.NewMemStorage()
+			memStorage := datastorage.NewMemStorage()
 			handler := handlers.NewMetricHandler(memStorage)
 			h := http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 				handler.UpdateMetric(rw, r)
@@ -126,7 +126,7 @@ func TestMetricHandlerGetMetric(t *testing.T) {
 			},
 		},
 	}
-	memStorage := storage.NewMemStorage()
+	memStorage := datastorage.NewMemStorage()
 	memStorage.InsertCounterMetric("C1", 111)
 	memStorage.InsertGaugeMetric("G1", 111.2)
 	for _, tt := range tests {
