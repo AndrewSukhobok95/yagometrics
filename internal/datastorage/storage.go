@@ -3,7 +3,10 @@ package datastorage
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"sync"
+
+	"github.com/AndrewSukhobok95/yagometrics.git/internal/serialization"
 )
 
 type Storage interface {
@@ -17,6 +20,7 @@ type Storage interface {
 	GetAllMetricNames() []string
 	GetCounterMetricNames() []string
 	GetGaugeMetricNames() []string
+	ExportToJSON() []byte
 	ExportToJSONString() string
 }
 
@@ -125,6 +129,25 @@ func (ms *MemStorage) GetGaugeMetricNames() []string {
 	}
 	ms.mutex.Unlock()
 	return names
+}
+
+func (ms *MemStorage) ExportToJSON() []byte {
+	var metrics []serialization.Metrics
+	ms.mutex.Lock()
+	for k := range ms.counters {
+		m, _ := GetFilledMetricFromStorage(k, "counter", ms)
+		metrics = append(metrics, m)
+	}
+	for k := range ms.gauges {
+		m, _ := GetFilledMetricFromStorage(k, "gauge", ms)
+		metrics = append(metrics, m)
+	}
+	ms.mutex.Unlock()
+	metricsMarshal, err := json.MarshalIndent(metrics, "", "    ")
+	if err != nil {
+		log.Println("Counldn't marshal the file")
+	}
+	return metricsMarshal
 }
 
 func (ms *MemStorage) ExportToJSONString() string {

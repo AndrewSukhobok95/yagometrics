@@ -42,6 +42,11 @@ func UpdateBackUpFile(storage Storage, file *os.File, storeInterval time.Duratio
 			log.Println("Back up file was not cleared:")
 			log.Printf(err.Error() + "\n\n")
 		}
+		_, err = file.Seek(0, 0)
+		if err != nil {
+			log.Println("Couldn't find the begging of the file:")
+			log.Printf(err.Error() + "\n\n")
+		}
 		file.WriteString(storage.ExportToJSONString())
 		log.Println("Back up file successfully updated")
 	}

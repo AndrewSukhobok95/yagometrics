@@ -29,7 +29,7 @@ func (m *Metrics) ToString() string {
 	return metric
 }
 
-func (m *Metrics) ToJSONString() string {
+func (m *Metrics) ToJSON() []byte {
 	metric := make(map[string]interface{})
 	metric["id"] = m.ID
 	metric["type"] = m.MType
@@ -40,5 +40,10 @@ func (m *Metrics) ToJSONString() string {
 		metric["delta"] = *m.Delta
 	}
 	metricMarshal, _ := json.Marshal(metric)
+	return metricMarshal
+}
+
+func (m *Metrics) ToJSONString() string {
+	metricMarshal := m.ToJSON()
 	return string(metricMarshal)
 }
