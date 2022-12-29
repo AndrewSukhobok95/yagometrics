@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 	"sync"
 
 	"github.com/AndrewSukhobok95/yagometrics.git/internal/serialization"
@@ -143,7 +144,8 @@ func (ms *MemStorage) ExportToJSON() []byte {
 		metrics = append(metrics, m)
 	}
 	ms.mutex.Unlock()
-	metricsMarshal, err := json.MarshalIndent(metrics, "", "    ")
+	//metricsMarshal, err := json.MarshalIndent(metrics, "", "    ")
+	metricsMarshal, err := json.Marshal(metrics)
 	if err != nil {
 		log.Println("Counldn't marshal the file")
 	}
@@ -157,18 +159,13 @@ func (ms *MemStorage) ExportToJSONString() string {
 		metric := CreateMetricJSONString(k, "counter", &v)
 		out += metric + ",\n"
 	}
-	i := 1
 	for k, v := range ms.gauges {
 		metric := CreateMetricJSONString(k, "gauge", &v)
-		if i == len(ms.gauges) {
-			out += metric + "\n"
-		} else {
-			out += metric + ",\n"
-		}
-		i++
+		out += metric + ",\n"
 	}
 	ms.mutex.Unlock()
-	out += "]"
+	out = strings.TrimSuffix(out, ",\n")
+	out += "\n]"
 	return out
 }
 
