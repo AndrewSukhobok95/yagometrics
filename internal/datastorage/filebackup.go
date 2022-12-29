@@ -61,7 +61,6 @@ func FillStorageFromBackUpFile(storage Storage, filePath string) {
 	}
 	var metrics []serialization.Metrics
 	err = json.Unmarshal(data, &metrics)
-	log.Printf(string(data) + "\n\n")
 	if err != nil {
 		log.Println("Error while trying to unmarshal the read data:")
 		log.Printf(err.Error() + "\n\n")
