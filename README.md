@@ -1,5 +1,7 @@
 # go-musthave-devops-tpl
 
+Autotests repository: [https://github.com/Yandex-Practicum/go-autotests](https://github.com/Yandex-Practicum/go-autotests)
+
 Шаблон репозитория для практического трека «Go в DevOps».
 
 # Начало работы
