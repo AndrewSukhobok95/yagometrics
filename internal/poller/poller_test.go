@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/AndrewSukhobok95/yagometrics.git/internal/datastorage"
 	"github.com/AndrewSukhobok95/yagometrics.git/internal/poller"
-	"github.com/AndrewSukhobok95/yagometrics.git/internal/storage"
 )
 
 func TestUpdateMetrics(t *testing.T) {
@@ -25,7 +25,7 @@ func TestUpdateMetrics(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Init Storage
-			memStorage := storage.NewMemStorage()
+			memStorage := datastorage.NewMemStorage()
 			memStorage.InsertCounterMetric("PollCount", 0)
 			// Update metric numUpdates times
 			for i := 0; i < tt.numUpdates; i++ {
@@ -55,7 +55,7 @@ func TestPoll(t *testing.T) {
 	numUpdates := 3
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			memStorage := storage.NewMemStorage()
+			memStorage := datastorage.NewMemStorage()
 			go poller.Poll(memStorage, tt.pollInterval)
 			waitInterval := time.Duration(numUpdates) * tt.pollInterval
 			time.Sleep(waitInterval)
