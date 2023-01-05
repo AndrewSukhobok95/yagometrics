@@ -9,6 +9,7 @@ import (
 	"github.com/AndrewSukhobok95/yagometrics.git/internal/datastorage"
 	"github.com/AndrewSukhobok95/yagometrics.git/internal/handlers"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 )
 
 func main() {
@@ -18,10 +19,9 @@ func main() {
 
 	r := chi.NewRouter()
 
-	//r.Use(middleware.RequestID)
-	//r.Use(middleware.RealIP)
-	//r.Use(middleware.Logger)
-	//r.Use(middleware.Recoverer)
+	r.Use(middleware.RealIP)
+	r.Use(middleware.Recoverer)
+	r.Use(handlers.GzipHandle)
 
 	r.Route("/", func(r chi.Router) {
 		r.Get("/", func(rw http.ResponseWriter, r *http.Request) {
