@@ -2,40 +2,57 @@ package reporter
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"time"
 
-	"github.com/AndrewSukhobok95/yagometrics.git/internal/storage"
+	"github.com/AndrewSukhobok95/yagometrics.git/internal/datastorage"
+	"github.com/AndrewSukhobok95/yagometrics.git/internal/serialization"
 )
 
-func send(client *http.Client, endpoint string) {
-	request, err := http.NewRequest(http.MethodPost, endpoint, bytes.NewBufferString(""))
+func sendByJSON(client *http.Client, address string, metric serialization.Metrics) {
+	metricMarshal, _ := json.Marshal(metric)
+	request, err := http.NewRequest(http.MethodPost, address, bytes.NewBuffer(metricMarshal))
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("Error in creating the request:\n")
+		log.Printf(err.Error() + "\n\n")
 	}
-	request.Header.Add("Content-Type", "text/plain")
+	request.Header.Add("Content-Type", "application/json")
 	response, err := client.Do(request)
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("Error in receiving the response:\n")
+		log.Printf(err.Error() + "\n\n")
+	} else {
+		defer response.Body.Close()
 	}
-	defer response.Body.Close()
 }
 
-func Report(client *http.Client, storage storage.Storage, endpoint string, reportInterval time.Duration) {
+func Report(client *http.Client, storage datastorage.Storage, endpoint string, reportInterval time.Duration) {
 	ticker := time.NewTicker(reportInterval)
-	counters := make(map[string]int64)
-	gauges := make(map[string]float64)
+	address := fmt.Sprintf("http://%s/update/", endpoint)
 	for {
 		<-ticker.C
-		storage.FillCounterMetricMap(counters)
-		storage.FillGaugeMetricMap(gauges)
-		for k, v := range counters {
-			send(client, fmt.Sprintf("http://%s/update/%s/%s/%d", endpoint, "counter", k, v))
+		counterNames := storage.GetCounterMetricNames()
+		for _, name := range counterNames {
+			metricToReturn, err := datastorage.GetFilledMetricFromStorage(name, "counter", storage)
+			if err != nil {
+				log.Printf("Error in extracting the metric from storage:\n")
+				log.Printf(err.Error() + "\n\n")
+			} else {
+				sendByJSON(client, address, metricToReturn)
+			}
 		}
-		for k, v := range gauges {
-			send(client, fmt.Sprintf("http://%s/update/%s/%s/%f", endpoint, "gauge", k, v))
+		gaugeNames := storage.GetGaugeMetricNames()
+		for _, name := range gaugeNames {
+			metricToReturn, err := datastorage.GetFilledMetricFromStorage(name, "gauge", storage)
+			if err != nil {
+				log.Printf("Error in extracting the metric from storage:\n")
+				log.Printf(err.Error() + "\n\n")
+			} else {
+				sendByJSON(client, address, metricToReturn)
+			}
 		}
 	}
 }

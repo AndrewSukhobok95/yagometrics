@@ -1,29 +1,29 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
+	"io"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
 
-	"github.com/AndrewSukhobok95/yagometrics.git/internal/storage"
+	"github.com/AndrewSukhobok95/yagometrics.git/internal/datastorage"
+	"github.com/AndrewSukhobok95/yagometrics.git/internal/serialization"
 	"github.com/go-chi/chi/v5"
 )
 
 type MetricHandler struct {
-	storage storage.Storage
+	storage datastorage.Storage
 }
 
-func NewMetricHandler(storage storage.Storage) MetricHandler {
+func NewMetricHandler(storage datastorage.Storage) MetricHandler {
 	return MetricHandler{storage: storage}
 }
 
 func (mh *MetricHandler) UpdateMetric(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Only POST requests are allowed.", http.StatusMethodNotAllowed)
-		return
-	}
 	metricType := chi.URLParam(r, "metricType")
 	metricName := chi.URLParam(r, "metricName")
 	metricValueString := chi.URLParam(r, "metricValue")
@@ -52,10 +52,6 @@ func (mh *MetricHandler) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 }
 
 func (mh *MetricHandler) GetMetric(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Only GET requests are allowed.", http.StatusMethodNotAllowed)
-		return
-	}
 	metricType := chi.URLParam(r, "metricType")
 	metricName := chi.URLParam(r, "metricName")
 	var metricValueString string
@@ -83,15 +79,108 @@ func (mh *MetricHandler) GetMetric(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(metricValueString))
 }
 
+func (mh *MetricHandler) UpdateMetricFromJSON(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Attempt to update metric by json\n")
+	var metric serialization.Metrics
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Printf(err.Error() + "\n\n")
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintln(w, err.Error())
+		return
+	}
+	err = json.Unmarshal(body, &metric)
+	if err != nil {
+		log.Printf(err.Error() + "\n\n")
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintln(w, err.Error())
+		return
+	}
+	log.Printf("Received metric: " + metric.ToString() + "\n")
+	/*if err := json.NewDecoder(r.Body).Decode(&metric); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}*/
+	switch {
+	case metric.MType == "gauge":
+		mh.storage.InsertGaugeMetric(metric.ID, *metric.Value)
+	case metric.MType == "counter":
+		mh.storage.AddCounterMetric(metric.ID, *metric.Delta)
+	default:
+		http.Error(w, fmt.Sprintf("%s metric type is not implemented.", metric.MType), http.StatusNotImplemented)
+		return
+	}
+	metricToReturn, err := datastorage.GetFilledMetricFromStorage(metric.ID, metric.MType, mh.storage)
+	if err != nil {
+		log.Printf(err.Error() + "\n\n")
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotImplemented)
+		fmt.Fprintln(w, err.Error())
+		return
+	}
+	log.Printf("Returned metric: " + metricToReturn.ToString() + "\n")
+	metricToReturnMarshaled, _ := json.Marshal(metricToReturn)
+	log.Printf("Sending response to agent\n\n")
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(metricToReturnMarshaled)
+	//json.NewEncoder(w).Encode(metricToReturn)
+}
+
+func (mh *MetricHandler) GetMetricJSON(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Attempt to get metric by json\n")
+	var metric serialization.Metrics
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Println("Error while reading the body of the request:")
+		log.Printf(err.Error() + "\n\n")
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		fmt.Fprintln(w, err.Error())
+		return
+	}
+	err = json.Unmarshal(body, &metric)
+	if err != nil {
+		log.Println("Error while unmarshaling the body of the request:")
+		log.Printf(err.Error() + "\n\n")
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		fmt.Fprintln(w, err.Error())
+		return
+	}
+	log.Printf("Received metric: " + metric.ToString() + "\n")
+	/*if err := json.NewDecoder(r.Body).Decode(&metric); err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}*/
+	metricToReturn, err := datastorage.GetFilledMetricFromStorage(metric.ID, metric.MType, mh.storage)
+	log.Printf("Returned metric: " + metricToReturn.ToString() + "\n")
+	if err != nil {
+		log.Printf(err.Error() + "\n\n")
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		fmt.Fprintln(w, err.Error())
+		return
+	}
+	log.Printf("Marshling metric to return\n")
+	metricToReturnMarshaled, _ := json.Marshal(metricToReturn)
+	log.Printf("Sending response to agent\n\n")
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(metricToReturnMarshaled)
+	/*if err := json.NewEncoder(w).Encode(metricToReturn); err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}*/
+}
+
 type MainPageContent struct {
 	Metrics string
 }
 
 func (mh *MetricHandler) GetMetricList(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Only GET requests are allowed.", http.StatusMethodNotAllowed)
-		return
-	}
 	metricsSlice := mh.storage.GetAllMetricNames()
 	var metricsNames string
 	if len(metricsSlice) != 0 {

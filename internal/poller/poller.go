@@ -5,10 +5,10 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/AndrewSukhobok95/yagometrics.git/internal/storage"
+	"github.com/AndrewSukhobok95/yagometrics.git/internal/datastorage"
 )
 
-func UpdateMetrics(storage storage.Storage, rtm *runtime.MemStats) {
+func UpdateMetrics(storage datastorage.Storage, rtm *runtime.MemStats) {
 	runtime.ReadMemStats(rtm)
 	storage.AddCounterMetric("PollCount", 1)
 	storage.InsertGaugeMetric("RandomValue", rand.Float64())
@@ -38,9 +38,11 @@ func UpdateMetrics(storage storage.Storage, rtm *runtime.MemStats) {
 	storage.InsertGaugeMetric("StackSys", float64(rtm.StackSys))
 	storage.InsertGaugeMetric("Sys", float64(rtm.Sys))
 	storage.InsertGaugeMetric("TotalAlloc", float64(rtm.TotalAlloc))
+	storage.InsertGaugeMetric("MSpanInuse", float64(rtm.MSpanInuse))
+	storage.InsertGaugeMetric("NumGC", float64(rtm.NumGC))
 }
 
-func Poll(storage storage.Storage, pollInterval time.Duration) {
+func Poll(storage datastorage.Storage, pollInterval time.Duration) {
 	ticker := time.NewTicker(pollInterval)
 	var rtm runtime.MemStats
 	storage.InsertCounterMetric("PollCount", 0)
