@@ -13,6 +13,8 @@ import (
 )
 
 func main() {
+	config := configuration.GetServerConfig()
+
 	var wg sync.WaitGroup
 	memStorage := datastorage.NewMemStorage()
 	handler := handlers.NewMetricHandler(memStorage)
@@ -41,7 +43,6 @@ func main() {
 		})
 	})
 
-	config := configuration.GetServerConfig()
 	datastorage.BackUpToFile(memStorage, config.StoreFile, config.StoreInterval, config.Restore, &wg)
 	log.Fatal(http.ListenAndServe(config.Address, r))
 	wg.Wait()

@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/AndrewSukhobok95/yagometrics.git/internal/configuration"
 	"github.com/AndrewSukhobok95/yagometrics.git/internal/datastorage"
 	"github.com/AndrewSukhobok95/yagometrics.git/internal/serialization"
 	"github.com/go-chi/chi/v5"
@@ -17,6 +18,7 @@ import (
 
 type MetricHandler struct {
 	storage datastorage.Storage
+	cfg     configuration.ServerConfig
 }
 
 func NewMetricHandler(storage datastorage.Storage) MetricHandler {
@@ -120,6 +122,18 @@ func (mh *MetricHandler) UpdateMetricFromJSON(w http.ResponseWriter, r *http.Req
 		fmt.Fprintln(w, err.Error())
 		return
 	}
+	calculatedHash := metricToReturn.GetHash(mh.cfg.HashKey)
+	if mh.cfg.HashKey != "" && metric.Hash != calculatedHash {
+		log.Printf("Received hash: " + metric.Hash + "\n")
+		log.Printf("Calculated hash: " + calculatedHash + "\n\n")
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		//fmt.Fprintln(w, nil)
+		w.Write(nil)
+		return
+	} else {
+		metricToReturn.Hash = calculatedHash
+	}
 	log.Printf("Returned metric: " + metricToReturn.ToString() + "\n")
 	metricToReturnMarshaled, _ := json.Marshal(metricToReturn)
 	log.Printf("Sending response to agent\n\n")
@@ -163,6 +177,18 @@ func (mh *MetricHandler) GetMetricJSON(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		fmt.Fprintln(w, err.Error())
 		return
+	}
+	calculatedHash := metricToReturn.GetHash(mh.cfg.HashKey)
+	if mh.cfg.HashKey != "" && metric.Hash != calculatedHash {
+		log.Printf("Received hash: " + metric.Hash + "\n")
+		log.Printf("Calculated hash: " + calculatedHash + "\n\n")
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		//fmt.Fprintln(w, nil)
+		w.Write(nil)
+		return
+	} else {
+		metricToReturn.Hash = calculatedHash
 	}
 	log.Printf("Marshling metric to return\n")
 	metricToReturnMarshaled, _ := json.Marshal(metricToReturn)
