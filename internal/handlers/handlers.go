@@ -18,11 +18,11 @@ import (
 
 type MetricHandler struct {
 	storage datastorage.Storage
-	cfg     configuration.ServerConfig
+	cfg     *configuration.ServerConfig
 }
 
-func NewMetricHandler(storage datastorage.Storage) MetricHandler {
-	return MetricHandler{storage: storage}
+func NewMetricHandler(storage datastorage.Storage, cfg *configuration.ServerConfig) MetricHandler {
+	return MetricHandler{storage: storage, cfg: cfg}
 }
 
 func (mh *MetricHandler) UpdateMetric(w http.ResponseWriter, r *http.Request) {

@@ -17,7 +17,7 @@ func main() {
 
 	var wg sync.WaitGroup
 	memStorage := datastorage.NewMemStorage()
-	handler := handlers.NewMetricHandler(memStorage)
+	handler := handlers.NewMetricHandler(memStorage, config)
 
 	r := chi.NewRouter()
 
