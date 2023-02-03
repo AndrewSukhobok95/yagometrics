@@ -122,6 +122,7 @@ func (mh *MetricHandler) UpdateMetricFromJSON(w http.ResponseWriter, r *http.Req
 		fmt.Fprintln(w, err.Error())
 		return
 	}
+	log.Printf("Returned metric: " + metricToReturn.ToString() + "\n")
 	calculatedHash := metricToReturn.GetHash(mh.cfg.HashKey)
 	if mh.cfg.HashKey != "" && metric.Hash != calculatedHash {
 		log.Printf("Received hash: " + metric.Hash + "\n")
@@ -134,7 +135,6 @@ func (mh *MetricHandler) UpdateMetricFromJSON(w http.ResponseWriter, r *http.Req
 	} else {
 		metricToReturn.Hash = calculatedHash
 	}
-	log.Printf("Returned metric: " + metricToReturn.ToString() + "\n")
 	metricToReturnMarshaled, _ := json.Marshal(metricToReturn)
 	log.Printf("Sending response to agent\n\n")
 	w.Header().Set("Content-Type", "application/json")
