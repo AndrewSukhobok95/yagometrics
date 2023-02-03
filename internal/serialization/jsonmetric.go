@@ -43,7 +43,7 @@ func (m *Metrics) GetHash(key string) string {
 	}
 	h := hmac.New(sha256.New, []byte(key))
 	h.Write([]byte(data))
-	return hex.EncodeToString(h.Sum(nil)) //fmt.Sprintf("%x", h.Sum(nil))
+	return hex.EncodeToString(h.Sum(nil))
 }
 
 func (m *Metrics) ToJSON() []byte {
