@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/AndrewSukhobok95/yagometrics.git/internal/configuration"
 	"github.com/AndrewSukhobok95/yagometrics.git/internal/datastorage"
 	"github.com/AndrewSukhobok95/yagometrics.git/internal/handlers"
 	"github.com/go-chi/chi/v5"
@@ -75,8 +76,9 @@ func TestMetricHandlerUpdateMetric(t *testing.T) {
 			rctx.URLParams.Add("metricValue", tt.metricValue)
 			request = request.WithContext(context.WithValue(request.Context(), chi.RouteCtxKey, rctx))
 			w := httptest.NewRecorder()
+			config := &configuration.ServerConfig{}
 			memStorage := datastorage.NewMemStorage()
-			handler := handlers.NewMetricHandler(memStorage)
+			handler := handlers.NewMetricHandler(memStorage, config)
 			h := http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 				handler.UpdateMetric(rw, r)
 			})
@@ -137,7 +139,8 @@ func TestMetricHandlerGetMetric(t *testing.T) {
 			rctx.URLParams.Add("metricName", tt.metricName)
 			request = request.WithContext(context.WithValue(request.Context(), chi.RouteCtxKey, rctx))
 			w := httptest.NewRecorder()
-			handler := handlers.NewMetricHandler(memStorage)
+			config := &configuration.ServerConfig{}
+			handler := handlers.NewMetricHandler(memStorage, config)
 			h := http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 				handler.GetMetric(rw, r)
 			})
