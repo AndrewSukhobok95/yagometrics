@@ -178,7 +178,7 @@ func (mh *MetricHandler) GetMetricJSON(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, err.Error())
 		return
 	}
-	calculatedHash := metric.GetHash(mh.cfg.HashKey)
+	calculatedHash := metricToReturn.GetHash(mh.cfg.HashKey)
 	if mh.cfg.HashKey != "" && metric.Hash != calculatedHash {
 		log.Printf("Received hash: " + metric.Hash + "\n")
 		log.Printf("Calculated hash: " + calculatedHash + "\n\n")
