@@ -179,17 +179,7 @@ func (mh *MetricHandler) GetMetricJSON(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	calculatedHash := metricToReturn.GetHash(mh.cfg.HashKey)
-	if mh.cfg.HashKey != "" && metric.Hash != calculatedHash {
-		log.Printf("Received hash: " + metric.Hash + "\n")
-		log.Printf("Calculated hash: " + calculatedHash + "\n\n")
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		//fmt.Fprintln(w, nil)
-		w.Write(nil)
-		return
-	} else {
-		metricToReturn.Hash = calculatedHash
-	}
+	metricToReturn.Hash = calculatedHash
 	log.Printf("Marshling metric to return\n")
 	metricToReturnMarshaled, _ := json.Marshal(metricToReturn)
 	log.Printf("Sending response to agent\n\n")
