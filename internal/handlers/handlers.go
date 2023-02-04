@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"html/template"
@@ -9,20 +10,34 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
+
+	"database/sql"
 
 	"github.com/AndrewSukhobok95/yagometrics.git/internal/configuration"
 	"github.com/AndrewSukhobok95/yagometrics.git/internal/datastorage"
 	"github.com/AndrewSukhobok95/yagometrics.git/internal/serialization"
 	"github.com/go-chi/chi/v5"
+	_ "github.com/jackc/pgx/v5"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type MetricHandler struct {
 	storage datastorage.Storage
 	cfg     *configuration.ServerConfig
+	db      *sql.DB
 }
 
 func NewMetricHandler(storage datastorage.Storage, cfg *configuration.ServerConfig) MetricHandler {
-	return MetricHandler{storage: storage, cfg: cfg}
+	db, err := sql.Open("pgx", cfg.DBAddress)
+	if err != nil {
+		panic(err)
+	}
+	return MetricHandler{storage: storage, cfg: cfg, db: db}
+}
+
+func (mh *MetricHandler) CloseDB() {
+	mh.db.Close()
 }
 
 func (mh *MetricHandler) UpdateMetric(w http.ResponseWriter, r *http.Request) {
@@ -190,6 +205,18 @@ func (mh *MetricHandler) GetMetricJSON(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}*/
+}
+
+func (mh *MetricHandler) PingDB(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), 1*time.Second)
+	defer cancel()
+	if err := mh.db.PingContext(ctx); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(nil)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write(nil)
 }
 
 type MainPageContent struct {
