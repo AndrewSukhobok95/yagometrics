@@ -31,6 +31,7 @@ type MetricHandler struct {
 func NewMetricHandler(storage datastorage.Storage, cfg *configuration.ServerConfig) MetricHandler {
 	db, err := sql.Open("pgx", cfg.DBAddress)
 	if err != nil {
+		log.Printf("Couldn't connet to DB:\n")
 		panic(err)
 	}
 	return MetricHandler{storage: storage, cfg: cfg, db: db}
