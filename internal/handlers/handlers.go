@@ -18,7 +18,7 @@ import (
 	"github.com/AndrewSukhobok95/yagometrics.git/internal/datastorage"
 	"github.com/AndrewSukhobok95/yagometrics.git/internal/serialization"
 	"github.com/go-chi/chi/v5"
-	_ "github.com/jackc/pgx/v5"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	_ "github.com/mattn/go-sqlite3"
 )
 
