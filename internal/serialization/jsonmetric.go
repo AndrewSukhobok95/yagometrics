@@ -1,6 +1,9 @@
 package serialization
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 )
@@ -10,6 +13,7 @@ type Metrics struct {
 	MType string   `json:"type"`            // параметр, принимающий значение gauge или counter
 	Delta *int64   `json:"delta,omitempty"` // значение метрики в случае передачи counter
 	Value *float64 `json:"value,omitempty"` // значение метрики в случае передачи gauge
+	Hash  string   `json:"hash,omitempty"`  // значение хеш-функции
 }
 
 func (m *Metrics) ToString() string {
@@ -29,6 +33,19 @@ func (m *Metrics) ToString() string {
 	return metric
 }
 
+func (m *Metrics) GetHash(key string) string {
+	var data string
+	switch m.MType {
+	case "gauge":
+		data = fmt.Sprintf("%s:gauge:%f", m.ID, *m.Value)
+	case "counter":
+		data = fmt.Sprintf("%s:counter:%d", m.ID, *m.Delta)
+	}
+	h := hmac.New(sha256.New, []byte(key))
+	h.Write([]byte(data))
+	return hex.EncodeToString(h.Sum(nil))
+}
+
 func (m *Metrics) ToJSON() []byte {
 	metric := make(map[string]interface{})
 	metric["id"] = m.ID
@@ -38,6 +55,9 @@ func (m *Metrics) ToJSON() []byte {
 		metric["value"] = *m.Value
 	case "counter":
 		metric["delta"] = *m.Delta
+	}
+	if m.Hash != "" {
+		metric["hash"] = m.Hash
 	}
 	metricMarshal, _ := json.Marshal(metric)
 	return metricMarshal

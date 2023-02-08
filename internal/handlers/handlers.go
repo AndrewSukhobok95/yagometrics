@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"html/template"
@@ -9,18 +10,35 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
+	"database/sql"
+
+	"github.com/AndrewSukhobok95/yagometrics.git/internal/configuration"
 	"github.com/AndrewSukhobok95/yagometrics.git/internal/datastorage"
 	"github.com/AndrewSukhobok95/yagometrics.git/internal/serialization"
 	"github.com/go-chi/chi/v5"
+	_ "github.com/jackc/pgx/v5/stdlib"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type MetricHandler struct {
 	storage datastorage.Storage
+	cfg     *configuration.ServerConfig
+	db      *sql.DB
 }
 
-func NewMetricHandler(storage datastorage.Storage) MetricHandler {
-	return MetricHandler{storage: storage}
+func NewMetricHandler(storage datastorage.Storage, cfg *configuration.ServerConfig) MetricHandler {
+	db, err := sql.Open("pgx", cfg.DBAddress)
+	if err != nil {
+		log.Printf("Couldn't connet to DB:\n")
+		panic(err)
+	}
+	return MetricHandler{storage: storage, cfg: cfg, db: db}
+}
+
+func (mh *MetricHandler) CloseDB() {
+	mh.db.Close()
 }
 
 func (mh *MetricHandler) UpdateMetric(w http.ResponseWriter, r *http.Request) {
@@ -121,6 +139,18 @@ func (mh *MetricHandler) UpdateMetricFromJSON(w http.ResponseWriter, r *http.Req
 		return
 	}
 	log.Printf("Returned metric: " + metricToReturn.ToString() + "\n")
+	calculatedHash := metric.GetHash(mh.cfg.HashKey)
+	if mh.cfg.HashKey != "" && metric.Hash != calculatedHash {
+		log.Printf("Received hash: " + metric.Hash + "\n")
+		log.Printf("Calculated hash: " + calculatedHash + "\n\n")
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		//fmt.Fprintln(w, nil)
+		w.Write(nil)
+		return
+	} else {
+		metricToReturn.Hash = calculatedHash
+	}
 	metricToReturnMarshaled, _ := json.Marshal(metricToReturn)
 	log.Printf("Sending response to agent\n\n")
 	w.Header().Set("Content-Type", "application/json")
@@ -164,6 +194,8 @@ func (mh *MetricHandler) GetMetricJSON(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, err.Error())
 		return
 	}
+	calculatedHash := metricToReturn.GetHash(mh.cfg.HashKey)
+	metricToReturn.Hash = calculatedHash
 	log.Printf("Marshling metric to return\n")
 	metricToReturnMarshaled, _ := json.Marshal(metricToReturn)
 	log.Printf("Sending response to agent\n\n")
@@ -174,6 +206,18 @@ func (mh *MetricHandler) GetMetricJSON(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}*/
+}
+
+func (mh *MetricHandler) PingDB(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), 1*time.Second)
+	defer cancel()
+	if err := mh.db.PingContext(ctx); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(nil)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write(nil)
 }
 
 type MainPageContent struct {
