@@ -11,7 +11,9 @@ import (
 	"github.com/AndrewSukhobok95/yagometrics.git/internal/configuration"
 	"github.com/AndrewSukhobok95/yagometrics.git/internal/datastorage"
 	"github.com/AndrewSukhobok95/yagometrics.git/internal/handlers"
+	"github.com/AndrewSukhobok95/yagometrics.git/internal/mocks"
 	"github.com/go-chi/chi/v5"
+	"github.com/golang/mock/gomock"
 )
 
 func TestMetricHandlerUpdateMetric(t *testing.T) {
@@ -76,9 +78,16 @@ func TestMetricHandlerUpdateMetric(t *testing.T) {
 			rctx.URLParams.Add("metricValue", tt.metricValue)
 			request = request.WithContext(context.WithValue(request.Context(), chi.RouteCtxKey, rctx))
 			w := httptest.NewRecorder()
+
+			// Mocking DB
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+			db := mocks.NewMockCustomDB(ctrl)
+
 			config := &configuration.ServerConfig{}
 			memStorage := datastorage.NewMemStorage()
-			handler := handlers.NewMetricHandler(memStorage, config)
+
+			handler := handlers.NewMetricHandler(memStorage, config, db)
 			h := http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 				handler.UpdateMetric(rw, r)
 			})
@@ -128,9 +137,11 @@ func TestMetricHandlerGetMetric(t *testing.T) {
 			},
 		},
 	}
+
 	memStorage := datastorage.NewMemStorage()
 	memStorage.InsertCounterMetric("C1", 111)
 	memStorage.InsertGaugeMetric("G1", 111.2)
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			request := httptest.NewRequest(http.MethodGet, "/value/{metricType}/{metricName}", bytes.NewBufferString(""))
@@ -139,8 +150,14 @@ func TestMetricHandlerGetMetric(t *testing.T) {
 			rctx.URLParams.Add("metricName", tt.metricName)
 			request = request.WithContext(context.WithValue(request.Context(), chi.RouteCtxKey, rctx))
 			w := httptest.NewRecorder()
+
+			// Mocking DB
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+			db := mocks.NewMockCustomDB(ctrl)
+
 			config := &configuration.ServerConfig{}
-			handler := handlers.NewMetricHandler(memStorage, config)
+			handler := handlers.NewMetricHandler(memStorage, config, db)
 			h := http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 				handler.GetMetric(rw, r)
 			})

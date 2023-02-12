@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/AndrewSukhobok95/yagometrics.git/internal/configuration"
+	"github.com/AndrewSukhobok95/yagometrics.git/internal/database"
 	"github.com/AndrewSukhobok95/yagometrics.git/internal/datastorage"
 	"github.com/AndrewSukhobok95/yagometrics.git/internal/handlers"
 	"github.com/go-chi/chi/v5"
@@ -16,9 +17,10 @@ func main() {
 	config := configuration.GetServerConfig()
 
 	var wg sync.WaitGroup
+	db := database.NewDB()
+	defer db.Close()
 	memStorage := datastorage.NewMemStorage()
-	handler := handlers.NewMetricHandler(memStorage, config)
-	defer handler.CloseDB()
+	handler := handlers.NewMetricHandler(memStorage, config, db)
 
 	r := chi.NewRouter()
 
