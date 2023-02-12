@@ -17,7 +17,7 @@ func main() {
 	config := configuration.GetServerConfig()
 
 	var wg sync.WaitGroup
-	db := database.NewDB()
+	db := database.NewDB(config.DBAddress)
 	defer db.Close()
 	memStorage := datastorage.NewMemStorage()
 	handler := handlers.NewMetricHandler(memStorage, config, db)

@@ -13,8 +13,8 @@ type PostgresDB struct {
 	db *sql.DB
 }
 
-func NewDB() *PostgresDB {
-	db, err := sql.Open("pgx", cfg.DBAddress)
+func NewDB(address string) *PostgresDB {
+	db, err := sql.Open("pgx", address)
 	//db, err := sql.Open("sqlite3", "db.db")
 	if err != nil {
 		log.Printf("Couldn't connet to DB:\n")
