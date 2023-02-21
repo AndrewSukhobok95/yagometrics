@@ -24,7 +24,7 @@ func main() {
 	memStorage := datastorage.NewMemStorage()
 	handler := handlers.NewMetricHandler(memStorage, config, db)
 
-	if config.DBAddress == "" {
+	if config.DBAddress != "" {
 		db.StartWritingToDB(memStorage, config.StoreInterval, context.Background(), &wg)
 	} else {
 		datastorage.StartWritingToFile(memStorage, config.StoreFile, config.StoreInterval, config.Restore, &wg)
