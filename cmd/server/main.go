@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"sync"
@@ -14,13 +15,20 @@ import (
 )
 
 func main() {
+	var wg sync.WaitGroup
+
 	config := configuration.GetServerConfig()
 
-	var wg sync.WaitGroup
 	db := database.NewDB(config.DBAddress)
 	defer db.Close()
 	memStorage := datastorage.NewMemStorage()
 	handler := handlers.NewMetricHandler(memStorage, config, db)
+
+	if config.DBAddress == "" {
+		db.StartWritingToDB(memStorage, config.StoreInterval, context.Background(), &wg)
+	} else {
+		datastorage.StartWritingToFile(memStorage, config.StoreFile, config.StoreInterval, config.Restore, &wg)
+	}
 
 	r := chi.NewRouter()
 
@@ -49,7 +57,6 @@ func main() {
 		})
 	})
 
-	datastorage.BackUpToFile(memStorage, config.StoreFile, config.StoreInterval, config.Restore, &wg)
 	log.Fatal(http.ListenAndServe(config.Address, r))
 	wg.Wait()
 }

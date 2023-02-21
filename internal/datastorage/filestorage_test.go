@@ -10,12 +10,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const TestBackUpFile = `[
+const TestStorageFile = `[
 {"delta":10,"id":"C1","type":"counter"},
 {"id":"G1","type":"gauge","value":5.67}
 ]`
 
-func TestUpdateBackUpFile(t *testing.T) {
+func TestUpdateStorageFile(t *testing.T) {
 	// Test Settings
 	storeInterval := time.Duration(2 * time.Second)
 	sleepInterval := time.Duration(3 * time.Second)
@@ -28,7 +28,7 @@ func TestUpdateBackUpFile(t *testing.T) {
 	defer file.Close()
 	defer os.Remove(file.Name())
 	// Update BackUp File
-	go datastorage.UpdateBackUpFile(memStorage, file, storeInterval)
+	go datastorage.UpdateStorageFile(memStorage, file, storeInterval)
 	time.Sleep(sleepInterval)
 	// Asserting
 	data, err := os.ReadFile(file.Name())
@@ -37,19 +37,19 @@ func TestUpdateBackUpFile(t *testing.T) {
 		log.Printf(err.Error() + "\n\n")
 		return
 	}
-	assert.Equal(t, TestBackUpFile, string(data), "Wrong content of the saved json")
+	assert.Equal(t, TestStorageFile, string(data), "Wrong content of the saved json")
 }
 
-func TestFillStorageFromBackUpFile(t *testing.T) {
+func TestFillStorageFromStorageFile(t *testing.T) {
 	// Init Storage
 	memStorage := datastorage.NewMemStorage()
 	// Create BackUp File
 	file, _ := os.CreateTemp(".", "test-backup-file-*.json")
 	defer file.Close()
 	defer os.Remove(file.Name())
-	file.WriteString(TestBackUpFile)
+	file.WriteString(TestStorageFile)
 	// Fill Storage
-	datastorage.FillStorageFromBackUpFile(memStorage, file.Name())
+	datastorage.FillStorageFromStorageFile(memStorage, file.Name())
 	// Asserting
 	delta, err := memStorage.GetCounterMetric("C1")
 	assert.NoError(t, err)
