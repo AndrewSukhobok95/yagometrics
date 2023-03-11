@@ -19,6 +19,6 @@ func main() {
 
 	wg.Add(2)
 	go poller.Poll(memStorage, config.PollInterval)
-	go reporter.Report(client, memStorage, config.Address, config.ReportInterval)
+	go reporter.Report(client, memStorage, config.Address, config.ReportInterval, config.HashKey)
 	wg.Wait()
 }

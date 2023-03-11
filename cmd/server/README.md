@@ -21,4 +21,12 @@ curl -i http://localhost:8080/value -X POST -H 'Content-Type: application/json' 
 
 curl -i http://localhost:8080/value/ -X POST -H 'Content-Type: application/json' -d '{"id": "PollCount", "type": "counter"}'
 curl -i http://localhost:8080/value/ -X POST -H 'Content-Type: application/json' -d '{"id": "Alloc", "type": "gauge"}'
+
+curl -i http://localhost:8080/ping -X GET
+```
+
+### Mocks
+
+```
+mockgen -destination=internal/mocks/mock_db.go -package=mocks github.com/AndrewSukhobok95/yagometrics.git/internal/database CustomDB
 ```

@@ -12,7 +12,11 @@ import (
 	"github.com/AndrewSukhobok95/yagometrics.git/internal/serialization"
 )
 
-func sendByJSON(client *http.Client, address string, metric serialization.Metrics) {
+func sendByJSON(client *http.Client, address string, metric serialization.Metrics, hashingKey string) {
+	if hashingKey != "" {
+		h := metric.GetHash(hashingKey)
+		metric.Hash = h
+	}
 	metricMarshal, _ := json.Marshal(metric)
 	request, err := http.NewRequest(http.MethodPost, address, bytes.NewBuffer(metricMarshal))
 	if err != nil {
@@ -29,7 +33,7 @@ func sendByJSON(client *http.Client, address string, metric serialization.Metric
 	}
 }
 
-func Report(client *http.Client, storage datastorage.Storage, endpoint string, reportInterval time.Duration) {
+func Report(client *http.Client, storage datastorage.Storage, endpoint string, reportInterval time.Duration, hashingKey string) {
 	ticker := time.NewTicker(reportInterval)
 	address := fmt.Sprintf("http://%s/update/", endpoint)
 	for {
@@ -41,7 +45,7 @@ func Report(client *http.Client, storage datastorage.Storage, endpoint string, r
 				log.Printf("Error in extracting the metric from storage:\n")
 				log.Printf(err.Error() + "\n\n")
 			} else {
-				sendByJSON(client, address, metricToReturn)
+				sendByJSON(client, address, metricToReturn, hashingKey)
 			}
 		}
 		gaugeNames := storage.GetGaugeMetricNames()
@@ -51,7 +55,7 @@ func Report(client *http.Client, storage datastorage.Storage, endpoint string, r
 				log.Printf("Error in extracting the metric from storage:\n")
 				log.Printf(err.Error() + "\n\n")
 			} else {
-				sendByJSON(client, address, metricToReturn)
+				sendByJSON(client, address, metricToReturn, hashingKey)
 			}
 		}
 	}

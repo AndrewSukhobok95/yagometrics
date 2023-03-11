@@ -13,6 +13,8 @@ type ServerConfig struct {
 	StoreInterval time.Duration `env:"STORE_INTERVAL" envDefault:"300s"`
 	StoreFile     string        `env:"STORE_FILE" envDefault:"/tmp/devops-metrics-db.json"`
 	Restore       bool          `env:"RESTORE" envDefault:"true"`
+	HashKey       string        `env:"KEY" envDefault:""`
+	DBAddress     string        `env:"DATABASE_DSN" envDefault:""`
 }
 
 func (c *ServerConfig) ToString() string {
@@ -21,6 +23,7 @@ func (c *ServerConfig) ToString() string {
 	config += "+ StoreFile: " + c.StoreFile + "\n"
 	config += "+ StoreInterval: " + c.StoreInterval.String() + "\n"
 	config += "+ Restore: " + fmt.Sprintf("%t", c.Restore) + "\n"
+	config += "+ DB Address: " + c.DBAddress + "\n"
 	return config
 }
 
@@ -31,6 +34,8 @@ func GetServerConfig() *ServerConfig {
 	restore := flag.String("r", "true", "restore latest values")
 	storeFile := flag.String("f", "/tmp/devops-metrics-db.json", "file for db")
 	storeInterval := flag.Duration("i", time.Second*300, "interval for db update")
+	hashKey := flag.String("k", "", "hash key for signing the data")
+	dbAddress := flag.String("d", "", "db address")
 	flag.Parse()
 
 	cfg.Address = *address
@@ -44,6 +49,8 @@ func GetServerConfig() *ServerConfig {
 	}
 	cfg.StoreFile = *storeFile
 	cfg.StoreInterval = *storeInterval
+	cfg.HashKey = *hashKey
+	cfg.DBAddress = *dbAddress
 
 	if addressFromEnv, ok := os.LookupEnv("ADDRESS"); ok {
 		cfg.Address = addressFromEnv
@@ -71,6 +78,14 @@ func GetServerConfig() *ServerConfig {
 
 	if storeFileFromEnv, ok := os.LookupEnv("STORE_FILE"); ok {
 		cfg.StoreFile = storeFileFromEnv
+	}
+
+	if hashKeyFromEnv, ok := os.LookupEnv("KEY"); ok {
+		cfg.HashKey = hashKeyFromEnv
+	}
+
+	if dbAddressFromEnv, ok := os.LookupEnv("DATABASE_DSN"); ok {
+		cfg.DBAddress = dbAddressFromEnv
 	}
 
 	/* Legacy for reading env variables
